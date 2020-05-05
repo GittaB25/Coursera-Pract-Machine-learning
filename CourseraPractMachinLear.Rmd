@@ -1,6 +1,9 @@
 ---
 title: "Prediction Assignment"
-output: html_document
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
 ---
 Gitta Borghart
 28-04-2020
@@ -44,7 +47,8 @@ Testing <- Testing[,c(features,"problem_id")]
 dim(Training)
 dim(Testing)
 
-
+# Partitioning of the data sets
+# 60% of the data will be used for training, 40% will be used for testing 
 library(caret)
 set.seed(12345)
 inTrain <- createDataPartition(Training$classe, p=0.60, list=FALSE)
@@ -56,6 +60,7 @@ dim(test1)
 
 
 #The model
+# A decision tree will be used to predict the classe outcome 
 library(rpart)
 library(rpart.plot)
 library(rattle)
@@ -67,7 +72,22 @@ fancyRpartPlot(modeltree)
 set.seed(12345)
 
 prediction <- predict(modeltree, test1, type = "class")
-confusionMatrix(prediction, test1$class)
+confusionMatrix(prediction, test1$classe)
+
+prediction2 <- predict(modeltree, Testing, type = "class")
+print(prediction2)
+
+
+# Prediction with random forest
+controlrf <- trainControl(method = "cv", number = 3, verboseIter = FALSE)
+mod1 <- train(classe ~ ., data = train1, method="rf", trControl=controlrf)
+mod1$finalModel
+
+# Check the outcome
+predictRF <- predict(mod1, newdata=test1)
+conf <- confusionMatrix(predictRF, test1$classe)
+conf
+
 
 
 #Check for the Out of Sample Error calculation
@@ -77,6 +97,7 @@ Check <- function(values, predicted) {
 OutofSample_ErrorRate <- Check(test1$classe, prediction)
 print(OutofSample_ErrorRate)
 
+
 ```
 
-Conclusion: Accuracy of prediction with the above data set is around 75%, which is quite alright. The out of sample error is 25%. 
+Conclusion: Accuracy of prediction with the above data set is around 75% with the tree and around 99% with RF, which is quite alright. The out of sample error is 25%. 
